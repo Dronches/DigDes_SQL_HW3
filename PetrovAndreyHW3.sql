@@ -37,20 +37,22 @@ Create INDEX indwebLogInfo ON Marketing.WebLog (SessionStart, ServerID) INCLUDE 
 а поле UserName иммет массивный тип nvarchar(100))
 Чтобы избежать проблемы с избытком хранения данных, то поля из select можно записать, как отдельные составляющие индекса. Это также может удорожить действия модификации, 
 однако теперь памяти не будет заниматься так много. Получаем следующую запись оптимизированную по памяти:
-Create INDEX indwebLogInfo ON Marketing.WebLog (SessionStart, ServerID, SessionID, UserName)
+indwebLogInfo ON Marketing.WebLog (SessionStart, ServerID, SessionID, UserName)
 На самом деле, нам не важен порядок SessionID и UserName в запросе select (оптимизатор сам изменит порядок для большей оптимизации. 
 Для того, чтобы запрос выполнялся оптимальнее по памяти и по времени относительно данного индекса, можно вынести SessionID в блок INCLUDE
 Это поле INT - хранить его будет оптимальнее, чем хранить индекс (нам не важен его порядок, для select важны лишь значения)
-Create INDEX indwebLogInfo ON Marketing.WebLog (SessionStart, ServerID, UserName) IN (SessionID)
+indwebLogInfo ON Marketing.WebLog (SessionStart, ServerID, UserName) IN (SessionID)
 Таким образом, мы получили индекс, при котором запрос будет выполняться наиболее оптимально по времени и по памяти (также не так сильно замедляются операции модификации)
 Если же рассматривать оптимизацию только по времени - которая и задана в условии, то получим следующий индекс который больше не обращается к памяти для UserName:
-Create INDEX indwebLogInfo ON Marketing.WebLog (SessionStart, ServerID) INCLUDE (SessionID, UserName)
+Create INDEX indwebLog_Info ON Marketing.WebLog (SessionStart, ServerID) INCLUDE (SessionID, UserName)
 */
 
 -- РЕЗУЛЬТАТ ВЫПОЛНЕНИЯ
-Drop INDEX indwebLogInfo1 ON Marketing.WebLog
-Create INDEX indwebLogInfo ON Marketing.WebLog (SessionStart, ServerID, UserName) IN (SessionID) -- оптимальный с точки зрения памяти
-Create INDEX indwebLogInfo ON Marketing.WebLog (SessionStart, ServerID) INCLUDE (SessionID, UserName) -- оптимальный только для данного запроса по времени (НАШ ВАРИАНТ)
+/*
+Create INDEX indWebLog_Info ON Marketing.WebLog (SessionStart, ServerID, UserName) INCLUDE (SessionID) -- оптимальный с точки зрения памяти
+*/
+
+Create INDEX indWebLog_Info ON Marketing.WebLog (SessionStart, ServerID) INCLUDE (SessionID, UserName) -- оптимальный только для данного запроса по времени (НАШ ВАРИАНТ)
 
 DECLARE @StartTime datetime2 = '2010-08-30 16:27';
 
